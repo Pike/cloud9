@@ -178,6 +178,9 @@ var contentTypes = {
     "atom": "application/atom+xml",
     "mathml": "application/mathml+xml",
     "mml": "application/mathml+xml",
+    "dtd": "application/xml-dtd",
+    
+    "properties": "text/x-gecko-properties",
 
     "php": "application/x-httpd-php",
     "phtml": "application/x-httpd-php",
