@@ -146,6 +146,9 @@ var config = [
             //"ext/githistory/githistory",
             "ext/autosave/autosave",
             "ext/revisions/revisions",
+            "ext/moz_lang_intel/moz_lang_intel",
+            "ext/moz_langpack/moz_langpack",
+            "ext/moz_compare_locales/moz_compare_locales",
             "ext/language/liveinspect",
             "ext/splitview/splitview"
             //"ext/minimap/minimap"
@@ -203,6 +206,7 @@ var config = [
     "./cloud9.ide.npm",
     "./cloud9.ide.filelist",
     "./cloud9.ide.search",
+    "./moz.compare_locales",
     "./cloud9.ide.run-node",
     {
         packagePath: "./cloud9.ide.run-npm-module",

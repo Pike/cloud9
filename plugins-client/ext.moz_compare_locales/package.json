@@ -1,0 +1,14 @@
+{
+  "name": "ext.moz_compare_locales",
+  "version": "0.0.1",
+  "main": "moz_compare_locales-ext.js",
+  "private": true,
+  "plugin": {
+    "provides": [
+      "ext/moz_compare_locales"
+    ],
+    "consumes": [
+      "client-plugins"
+    ]
+  }
+}

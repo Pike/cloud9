@@ -1,0 +1,17 @@
+{
+    "name": "moz.compare_locales",
+    "version": "0.0.1",
+
+    "main": "./compare_locales.js",
+    "private": true,
+
+    "plugin": {
+        "consumes": [
+            "ide",
+            "vfs",
+            "process-manager",
+            "run-shell",
+            "eventbus"
+        ]
+    }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "ext.moz_langpack",
+  "version": "0.0.1",
+  "main": "moz_langpack-ext.js",
+  "private": true,
+  "plugin": {
+    "provides": [
+      "ext/moz_langpack"
+    ],
+    "consumes": [
+      "client-plugins"
+    ]
+  }
+}

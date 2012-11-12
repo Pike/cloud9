@@ -1,0 +1,14 @@
+{
+  "name": "ext.moz_lang_intel",
+  "version": "0.0.1",
+  "main": "moz_lang_intel-ext.js",
+  "private": true,
+  "plugin": {
+    "provides": [
+      "ext/moz_lang_intel"
+    ],
+    "consumes": [
+      "client-plugins"
+    ]
+  }
+}

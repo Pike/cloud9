@@ -1,0 +1,24 @@
+<a:application xmlns:a="http://ajax.org/2005/aml">
+  <a:window id="winComparePanel" 
+    title    = "compare-locales" 
+    buttons  = "close" 
+    skin     = "fm-window"
+    flex     = "1" 
+    optimize = "true"
+    modal    = "false">
+        <a:button
+          skin="header-btn"
+          class="panel-settings"
+          submenu="mnuCompareSettings"/>
+        <a:menu id="mnuCompareSettings">
+            <a:item onclick="require('ext/moz_compare_locales/moz_compare_locales').refresh()">Refresh Comparison</a:item>
+            <a:divider />
+        </a:menu>
+
+          <a:datagrid startcollapsed = "false" model="{require('ext/moz_compare_locales/moz_compare_locales').model}" each="[dir|file]" caption="[@path]" icon="[@icon]" onafterchoose="require('ext/moz_compare_locales/moz_compare_locales').open(this)">
+            <a:column tree="true" width="90%" value="[@path]" caption="File" icon="[@icon]"/>
+            <a:column width="10%" value="[@missing]" caption="Missing" />
+    </a:datagrid>
+
+  </a:window>
+</a:application>
