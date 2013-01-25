@@ -30,7 +30,7 @@ define(function(require, exports, module) {
     };
     
     function cmdL10nProject(editor, command) {
-        var argv = command.argv, s=settings, node;
+        var argv = command.argv, s=settings, ini, localedir;
         switch (argv.length) {
             case 1:
                 console.write("not enough params", command);
@@ -41,6 +41,13 @@ define(function(require, exports, module) {
                 console.write("set up l10n project with compare-dirs", command);
                 break;
             default:
+                ini = argv[1];
+                localedir = argv[2].split('/');
+                s.model.setQueryValue("moz/project/@ini", ini);
+                s.model.setQueryValue("moz/project/@locale", localedir.pop());
+                s.model.setQueryValue("moz/project/@l10nbase",
+                                      localedir.join("/"));
+                s.save(true);
                 console.write("set up l10n project with compare-locales and langpack", command);
         }
     }

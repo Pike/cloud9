@@ -32,17 +32,18 @@ util.inherits(CompareLocalesPlugin, Plugin);
 
 (function() {
     this.command = function(user, message, client) {
-        if (message.command !== "moz_compare_dirs")
+        if (message.command.indexOf("moz_compare_") !== 0)
             return false;
+        var cmd = 'compare-' + message.command.substr(12);
         this.client = client;
         var self = this, stdout = '';
         console.log('cmd called', message);
         this.pm.spawn("shell", {
-            command: "compare-dirs",
+            command: cmd,
             args: ['--data'].concat(message.argv),
             cwd: this.ide.workspace.workspaceDir,
             encoding: "utf8"
-            }, "spawn::compare-dirs", function(err, pid) {
+            }, "spawn::compare-result", function(err, pid) {
                 if (err) {
                     client.send(err, "Could not spawn process for " + client);
                     console.error(err);
@@ -63,11 +64,11 @@ util.inherits(CompareLocalesPlugin, Plugin);
                 }
                 var clientmsg = {
                     type: 'servermessage',
-                    subtype: 'moz:compare-dirs',
+                    subtype: 'moz:compare-result',
                     result: result
                 };
                 self.client.send(JSON.stringify(clientmsg), self.name);
-                self.eventbus.removeListener('spawn::compare-dirs',
+                self.eventbus.removeListener('spawn::compare-result',
                     onEventBus);
             }
             else if (msg.stream == "stdout" && msg.data) {
@@ -75,7 +76,7 @@ util.inherits(CompareLocalesPlugin, Plugin);
             }
         }
         
-        this.eventbus.on("spawn::compare-dirs", onEventBus);
+        this.eventbus.on("spawn::compare-result", onEventBus);
         return true;
     };
 }).call(CompareLocalesPlugin.prototype);

@@ -126,9 +126,30 @@ define(function(require, exports, module) {
 
             function onSettings(e) {
                 var setLocale = settings.model.queryValue("moz/project/@locale") || null;
+                var setIni = settings.model.queryValue("moz/project/@ini") || null;
+                var setBase;
+                var doCompare = false;
+                if (setIni) {
+                    if (setIni != self.ini) {
+                        self.ini = setIni;
+                        doCompare = true;
+                    }
+                    setBase = settings.model.queryValue("moz/project/@l10nbase");
+                    if (setBase != self.l10nbase) {
+                        self.l10nbase = setBase;
+                        doCompare = true;
+                    }
+                }
+                if (setBase && setBase != self.l10nbase) {
+                    self.l10nbase = setBase;
+                    doCompare = true;
+                }
                 if (setLocale && setLocale != self.locale) {
                     self.locale = setLocale;
                     console.log('onSettings', e.name, self.locale);
+                    doCompare = true;
+                }
+                if (doCompare) {
                     self.compare();
                 }
             }
@@ -177,9 +198,18 @@ define(function(require, exports, module) {
         },
 
         compare: function() {
+            var cmd, argv;
+            if (this.ini) {
+                cmd = "moz_compare_locales";
+                argv = [this.ini, this.l10nbase, this.locale];
+            }
+            else {
+                cmd = "moz_compare_dirs";
+                argv = ['en-US', this.locale];
+            }
             ide.send({
-                command: "moz_compare_dirs",
-                argv: ['en-US', this.locale],
+                command: cmd,
+                argv: argv,
                 cwd: "/",
                 sender: "compare-locales-client"
             });
@@ -188,7 +218,8 @@ define(function(require, exports, module) {
         $onMessage: function(e) {
             var message = e.message;
             if (message.type != "servermessage") return false;
-            updateModel(this.model, this.locale, message.result.details);
+            var base = this.l10nbase ? this.l10nbase: this.locale;
+            updateModel(this.model, base, message.result.details);
             e.stop();
             return true;
         }

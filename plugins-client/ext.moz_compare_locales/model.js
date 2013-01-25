@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 define(function(require, exports, module) {
-    exports.updateModel = function updateModel(model, locale, details) {
+    exports.updateModel = function updateModel(model, base, details) {
       function node(bp, dict) {
         var children = [], i, ii;
         var sub, missing = 0, obsolete = 0, xml, rv;
@@ -49,7 +49,7 @@ define(function(require, exports, module) {
       }
       model.load('<data></data>');
       if (details) {
-          model.appendXml(node(locale, details));
+          model.appendXml(node(base, details));
       }
     };
 });

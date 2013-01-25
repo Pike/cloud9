@@ -30,11 +30,44 @@ define(function(require, exports, module) {
             var self = this;
 
             function onSettings(e) {
-                var setLocale = settings.model.queryValue("moz/project/@locale") || null;
-                if (setLocale && setLocale != self.locale) {
-                    self.locale = setLocale;
+                var proj = settings.model.queryNode("moz/project");
+                var settingsChanged = false;
+                function doSetting(k) {
+                    if (proj.hasAttribute(k) && proj.getAttribute(k) !== self[k]) {
+                        self[k] = proj.getAttribute(k);
+                        settingsChanged = true;
+                    }
+                }
+                if (proj) {
+                    doSetting('locale');
+                    doSetting('ini');
+                    doSetting('l10nbase');
+                }
+                if (settingsChanged) {
                     console.log('onSettings', e.name, self.locale);
-                    // maybe do something
+                    if (self.l10nbase) {
+                        var en_segs = self.ini.split('/');
+                        var en_base = en_segs.slice(0, en_segs.indexOf('locales') - 1).join('/');
+                        var l10nbase = [self.l10nbase, self.locale].join('/');
+                        self.getRefPath = function(origpath){
+                            // XXX, hack, only one hierarchy now
+                            if (origpath.indexOf(l10nbase) !== 0) {
+                                console.log('fail');
+                                return origpath;
+                            }
+                            var path = origpath.substr(l10nbase.length + 1);
+                            var segs = path.split('/');
+                            var mod = segs.shift();
+                            console.log(en_base, mod, segs);
+                            return [en_base, mod, 'locales/en-US'].concat(segs).join('/');
+                        };
+                    }
+                    else {
+                        var leadloc = new RegExp('^' + self.locale + '/');
+                        self.getRefPath = function(origpath) {
+                            return origpath.replace(leadloc, 'en-US/');
+                        };
+                    }
                 }
             }
             ide.addEventListener("settings.load", onSettings);
@@ -48,7 +81,7 @@ define(function(require, exports, module) {
                     _onmessage(e);
                     if (e.data.type == 'moz:l10n' && e.data.name == 'reference') {
                         var origpath = e.data.data.path;
-                        var refpath = origpath.replace(new RegExp('^' + self.locale + '/'), 'en-US/');
+                        var refpath = self.getRefPath(origpath);
                         console.log('moz_lang_intel onmessage:', origpath, refpath);
                         if (origpath != refpath) {
                             filesystem.readFile(ide.davPrefix + '/' + refpath,
