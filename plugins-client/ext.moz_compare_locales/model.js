@@ -23,6 +23,9 @@ define(function(require, exports, module) {
           if (dict.value.obsoleteEntity) {
             xml += 'obsolete="' + dict.value.obsoleteEntity.length + '" ';
           }
+          if (dict.value.warning) {
+            xml += 'warning="' + dict.value.warning.length + '" ';
+          }
           if (dict.value.missingFile) {
             xml += 'missingFile="yes" ';
             if (dict.value.strings) {

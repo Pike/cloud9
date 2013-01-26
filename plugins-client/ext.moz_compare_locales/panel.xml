@@ -1,24 +1,32 @@
 <a:application xmlns:a="http://ajax.org/2005/aml">
-  <a:window id="winComparePanel" 
-    title    = "compare-locales" 
-    buttons  = "close" 
-    skin     = "fm-window"
-    flex     = "1" 
-    optimize = "true"
-    modal    = "false">
-        <a:button
-          skin="header-btn"
-          class="panel-settings"
-          submenu="mnuCompareSettings"/>
+    <a:window
+        id="winComparePanel"
+        title="compare-locales"
+        buttons="close"
+        skin="fm-window"
+        flex="1"
+        optimize="true"
+        modal="false">
+        <a:button skin="header-btn" class="panel-settings"
+            submenu="mnuCompareSettings"/>
         <a:menu id="mnuCompareSettings">
             <a:item onclick="require('ext/moz_compare_locales/moz_compare_locales').refresh()">Refresh Comparison</a:item>
-            <a:divider />
+            <a:divider visible="false" />
+            <a:item type="check" checked="true" caption="config" visible="false" />
+            <a:item type="check" checked="true" caption="user1" visible="false" />
+            <a:item type="check" checked="true" caption="user2" visible="false" />
         </a:menu>
-
-          <a:datagrid startcollapsed = "false" model="{require('ext/moz_compare_locales/moz_compare_locales').model}" each="[dir|file]" caption="[@path]" icon="[@icon]" onafterchoose="require('ext/moz_compare_locales/moz_compare_locales').open(this)">
-            <a:column tree="true" width="90%" value="[@path]" caption="File" icon="[@icon]"/>
-            <a:column width="10%" value="[@missing]" caption="Missing" />
-    </a:datagrid>
-
-  </a:window>
+        <a:vsplitbox id="vboxCompareContainer" anchors="0 0 0 0" minheight="1">
+            <a:datagrid startcollapsed="false"
+                model="{require('ext/moz_compare_locales/moz_compare_locales').model}"
+                each="[dir|file]" caption="[@path]" icon="[@icon]"
+                onafterchoose="require('ext/moz_compare_locales/moz_compare_locales').open(this)">
+                <a:column tree="true" width="79%" value="[@path]"
+                    caption="File" icon="[@icon]"/>
+                <a:column width="7%" value="[@missing]" caption="!" />
+                <a:column width="7%" value="[@warning]" caption="?" />
+                <a:column width="7%" value="[@obsolete]" caption="-" />
+            </a:datagrid>
+        </a:vsplitbox>
+    </a:window>
 </a:application>
