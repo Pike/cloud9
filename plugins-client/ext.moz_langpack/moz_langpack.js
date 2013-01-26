@@ -8,65 +8,105 @@
  */
 
 define(function(require, exports, module) {
-/*global barTools*/
+    /*global barTools, InstallTrigger */
 
-var ide = require("core/ide");
-var ext = require("core/ext");
-var fs = require("ext/filesystem/filesystem");
-var menus = require("ext/menus/menus");
+    var ide = require("core/ide");
+    var ext = require("core/ext");
+    var fs = require("ext/filesystem/filesystem");
+    var menus = require("ext/menus/menus");
 
-module.exports = ext.register("ext/moz_langpack/moz_langpack", {
-  dev: "mozilla.org",
-  name: "Language Pack Builder",
-  alone: true,
-  type: ext.GENERAL,
-  deps: [fs],
-  nodes: [],
 
-  init : function(amlNode) {
-    this.nodes.push(
-      menus.$insertByIndex(barTools, new apf.button({
-        skin : "c9-toolbarbutton-glossy",
-        tooltip : "Install Language Pack",
-        caption : "LangPack"
-      })), 20);
-  },
+    module.exports = ext.register("ext/moz_langpack/moz_langpack", {
+        dev: "mozilla.org",
+        name: "Language Pack Builder",
+        alone: true,
+        type: ext.GENERAL,
+        deps: [fs],
+        nodes: [],
 
-  hook : function() {
-    var _self = this;
-    ide.addEventListener("fs.afterfilesave", function (e) {
-      if (e.success) {
-        _self.maybeBuild();
-      }
+        init: function(amlNode) {
+            var self = this;
+            this.nodes.push(
+            menus.$insertByIndex(barTools, new apf.button({
+                skin: "c9-toolbarbutton-glossy",
+                tooltip: "Install Language Pack",
+                caption: "LangPack",
+                onclick: function() {
+                    self.maybeBuild();
+                }
+            })), 20);
+        },
+
+        hook: function() {
+            this.cmd_id = 0;
+            ide.addEventListener("socketMessage", this.$message.bind(this));
+            ext.initExtension(this);
+        },
+
+        enable: function() {
+            this.nodes.each(function(item) {
+                item.enable();
+            });
+        },
+
+        disable: function() {
+            this.nodes.each(function(item) {
+                item.disable();
+            });
+        },
+
+        destroy: function() {
+            this.nodes.each(function(item) {
+                item.destroy(true, true);
+            });
+            this.nodes = [];
+        },
+
+        maybeBuild: function() {
+            this.nodes[0].setAttribute("caption", "Building.");
+            this.nextProcess = this.doLanguagePack.bind(this);
+            this.dispatchCommand(["make", "merge-de",
+                                  "LOCALE_MERGEDIR=$PWD/mool"]);
+        },
+        
+        doLanguagePack: function(e) {
+            this.nodes[0].setAttribute("caption", "Building..");
+            this.nextProcess = this.installLanguagePack.bind(this);
+            this.dispatchCommand(["make", "langpack-de",
+                                  "LANGPACK_FILE=$PWD/../../langpack.xpi",
+                                  "LOCALE_MERGEDIR=$PWD/mool"]);
+        },
+        
+        installLanguagePack: function(e) {
+            this.nodes[0].setAttribute("caption", "Language Pack");
+            InstallTrigger.install({
+                "Language Pack": "workspace/.build/langpack.xpi"
+            });
+            delete this.nextProcess;
+        },
+
+        dispatchCommand: function(argv) {
+            ide.send({
+                command: "make",
+                argv: argv,
+                line: argv.join(" "),
+                cwd: ide.workspaceDir + "/.build/browser/locales",
+                requireshandling: true,
+                extra: {
+                    langpack_command_id: ++this.cmd_id,
+                    original_line: argv.join(" ")
+                }
+            });
+        },
+        
+        $message: function(e) {
+            if (this.nextProcess === undefined) return;
+            var msg = e.message;
+            if (msg.type !== "npm-module-exit") return;
+            if (msg.extra === undefined) return;
+            if (msg.extra.langpack_command_id === undefined) return;
+            this.nextProcess(e);
+        }
     });
-    ext.initExtension(this);
-  },
-
-  enable : function() {
-    this.nodes.each(function(item) {
-        item.enable();
-    });
-  },
-
-  disable : function() {
-    this.nodes.each(function(item) {
-        item.disable();
-    });
-  },
-
-  destroy : function() {
-    this.nodes.each(function(item) {
-      item.destroy(true, true);
-    });
-    this.nodes = [];
-  },
-  
-  maybeBuild : function() {
-    var btn = this.nodes[0];
-    console.log('I might want to do a langpack', btn);
-    btn.setAttribute("caption", "Building...");
-    setTimeout(function() {btn.setAttribute("caption", "LangPack");}, 2000);
-  }
-});
 
 });
