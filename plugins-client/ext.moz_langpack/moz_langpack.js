@@ -38,8 +38,15 @@ define(function(require, exports, module) {
         },
 
         hook: function() {
+            var self = this;
             this.cmd_id = 0;
             ide.addEventListener("socketMessage", this.$message.bind(this));
+            ide.addEventListener("moz:settings", function(e) {
+                self.locale = e.locale;
+                self.l10nbase = e.l10nbase;
+                self.ini = e.ini;
+                console.log('langpack set up');
+            });
             ext.initExtension(this);
         },
 
@@ -65,14 +72,14 @@ define(function(require, exports, module) {
         maybeBuild: function() {
             this.nodes[0].setAttribute("caption", "Building.");
             this.nextProcess = this.doLanguagePack.bind(this);
-            this.dispatchCommand(["make", "merge-de",
+            this.dispatchCommand(["make", "merge-" + this.locale,
                                   "LOCALE_MERGEDIR=$PWD/mool"]);
         },
         
         doLanguagePack: function(e) {
             this.nodes[0].setAttribute("caption", "Building..");
             this.nextProcess = this.installLanguagePack.bind(this);
-            this.dispatchCommand(["make", "langpack-de",
+            this.dispatchCommand(["make", "langpack-" + this.locale,
                                   "LANGPACK_FILE=$PWD/../../langpack.xpi",
                                   "LOCALE_MERGEDIR=$PWD/mool"]);
         },
@@ -80,7 +87,7 @@ define(function(require, exports, module) {
         installLanguagePack: function(e) {
             this.nodes[0].setAttribute("caption", "Language Pack");
             InstallTrigger.install({
-                "Language Pack": "workspace/.build/langpack.xpi"
+                "Language Pack": ide.davPrefix + "/.build/langpack.xpi"
             });
             delete this.nextProcess;
         },

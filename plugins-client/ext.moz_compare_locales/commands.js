@@ -3,9 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 define(function(require, exports, module) {
-    var commands = require("ext/commands/commands");
-    var console = require("ext/console/console");
+    var ide = require("core/ide");
     var settings = require("core/settings");
+    var commands = require("ext/commands/commands");
+    var c9console = require("ext/console/console");
 
     exports.hook = function() {
         commands.addCommand({
@@ -33,12 +34,12 @@ define(function(require, exports, module) {
         var argv = command.argv, s=settings, ini, localedir;
         switch (argv.length) {
             case 1:
-                console.write("not enough params", command);
+                c9console.write("not enough params", command);
                 break;
             case 2:
                 s.model.setQueryValue("moz/project/@locale", argv[1]);
                 s.save(true);
-                console.write("set up l10n project with compare-dirs", command);
+                c9console.write("set up l10n project with compare-dirs", command);
                 break;
             default:
                 ini = argv[1];
@@ -48,10 +49,49 @@ define(function(require, exports, module) {
                 s.model.setQueryValue("moz/project/@l10nbase",
                                       localedir.join("/"));
                 s.save(true);
-                console.write("set up l10n project with compare-locales and langpack", command);
+                c9console.write("set up l10n project with compare-locales and langpack", command);
         }
     }
-    
+
+
+    var mozSettings = {};
+    function onSettings(e) {
+        var setLocale = settings.model.queryValue("moz/project/@locale") || null;
+        var setIni = settings.model.queryValue("moz/project/@ini") || null;
+        var setBase;
+        var dispatchEvent = false;
+        if (setIni) {
+            if (setIni != mozSettings.ini) {
+                mozSettings.ini = setIni;
+                dispatchEvent = true;
+            }
+            setBase = settings.model.queryValue("moz/project/@l10nbase");
+            if (setBase != mozSettings.l10nbase) {
+                mozSettings.l10nbase = setBase;
+                dispatchEvent = true;
+            }
+        }
+        if (setBase && setBase != mozSettings.l10nbase) {
+            mozSettings.l10nbase = setBase;
+            dispatchEvent = true;
+        }
+        if (setLocale && setLocale != mozSettings.locale) {
+            mozSettings.locale = setLocale;
+            dispatchEvent = true;
+        }
+        if (dispatchEvent) {
+            ide.dispatchEvent('moz:settings', mozSettings);
+        }
+    }
+    ide.addEventListener("extload", bootstrapsettings);
+    function bootstrapsettings() {
+        ide.addEventListener("settings.load", onSettings);
+        ide.addEventListener("settings.save", onSettings);
+        onSettings();
+        ide.removeEventListener("extload", bootstrapsettings);
+    }
+
+
     function cmdGoToNextAnnotation(editor) {
         var cursor = editor.getSelection().getCursor();
         var annos = editor.getDocument().getAnnotations();

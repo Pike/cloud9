@@ -30,48 +30,40 @@ define(function(require, exports, module) {
             var self = this;
 
             function onSettings(e) {
-                var proj = settings.model.queryNode("moz/project");
-                var settingsChanged = false;
-                function doSetting(k) {
-                    if (proj.hasAttribute(k) && proj.getAttribute(k) !== self[k]) {
-                        self[k] = proj.getAttribute(k);
-                        settingsChanged = true;
-                    }
+                self.locale = e.locale;
+                self.ini = e.ini;
+                self.l10nbase = e.l10nbase;
+                console.log('onIntelSettings', e.name, self.locale);
+                if (self.l10nbase) {
+                    var en_segs = self.ini.split('/');
+                    var en_base = en_segs.slice(0, en_segs.indexOf('locales') - 1).join('/');
+                    var l10nsegs = self.l10nbase.split('/');
+                    if (l10nsegs[0] === '.') l10nsegs.shift();
+                    l10nsegs.push(self.locale);
+                    var l10nbase = l10nsegs.join('/');
+                    self.getRefPath = function(origpath){
+                        if (origpath.substr(0, 2) === './')
+                            origpath = origpath.substr(2);
+                        // XXX, hack, only one hierarchy now
+                        if (origpath.indexOf(l10nbase) !== 0) {
+                            console.log('fail');
+                            return origpath;
+                        }
+                        var path = origpath.substr(l10nbase.length + 1);
+                        var segs = path.split('/');
+                        var mod = segs.shift();
+                        console.log(en_base, mod, segs);
+                        return [en_base, mod, 'locales/en-US'].concat(segs).join('/');
+                    };
                 }
-                if (proj) {
-                    doSetting('locale');
-                    doSetting('ini');
-                    doSetting('l10nbase');
-                }
-                if (settingsChanged) {
-                    console.log('onSettings', e.name, self.locale);
-                    if (self.l10nbase) {
-                        var en_segs = self.ini.split('/');
-                        var en_base = en_segs.slice(0, en_segs.indexOf('locales') - 1).join('/');
-                        var l10nbase = [self.l10nbase, self.locale].join('/');
-                        self.getRefPath = function(origpath){
-                            // XXX, hack, only one hierarchy now
-                            if (origpath.indexOf(l10nbase) !== 0) {
-                                console.log('fail');
-                                return origpath;
-                            }
-                            var path = origpath.substr(l10nbase.length + 1);
-                            var segs = path.split('/');
-                            var mod = segs.shift();
-                            console.log(en_base, mod, segs);
-                            return [en_base, mod, 'locales/en-US'].concat(segs).join('/');
-                        };
-                    }
-                    else {
-                        var leadloc = new RegExp('^' + self.locale + '/');
-                        self.getRefPath = function(origpath) {
-                            return origpath.replace(leadloc, 'en-US/');
-                        };
-                    }
+                else {
+                    var leadloc = new RegExp('^' + self.locale + '/');
+                    self.getRefPath = function(origpath) {
+                        return origpath.replace(leadloc, 'en-US/');
+                    };
                 }
             }
-            ide.addEventListener("settings.load", onSettings);
-            ide.addEventListener("settings.save", onSettings);
+            ide.addEventListener("moz:settings", onSettings);
             language.registerLanguageHandler("ext/moz_lang_intel/worker/properties",
             properties_parser + properties_worker);
             ide.addEventListener("extload", function() {

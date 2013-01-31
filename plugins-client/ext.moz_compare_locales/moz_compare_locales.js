@@ -125,36 +125,12 @@ define(function(require, exports, module) {
             });
 
             function onSettings(e) {
-                var setLocale = settings.model.queryValue("moz/project/@locale") || null;
-                var setIni = settings.model.queryValue("moz/project/@ini") || null;
-                var setBase;
-                var doCompare = false;
-                if (setIni) {
-                    if (setIni != self.ini) {
-                        self.ini = setIni;
-                        doCompare = true;
-                    }
-                    setBase = settings.model.queryValue("moz/project/@l10nbase");
-                    if (setBase != self.l10nbase) {
-                        self.l10nbase = setBase;
-                        doCompare = true;
-                    }
-                }
-                if (setBase && setBase != self.l10nbase) {
-                    self.l10nbase = setBase;
-                    doCompare = true;
-                }
-                if (setLocale && setLocale != self.locale) {
-                    self.locale = setLocale;
-                    console.log('onSettings', e.name, self.locale);
-                    doCompare = true;
-                }
-                if (doCompare) {
-                    self.compare();
-                }
+                self.locale = e.locale;
+                self.ini = e.ini;
+                self.l10nbase = e.l10nbase;
+                self.compare();
             }
-            ide.addEventListener("settings.load", onSettings);
-            ide.addEventListener("settings.save", onSettings);
+            ide.addEventListener("moz:settings", onSettings);
             ide.addEventListener("fs.afterfilesave", function(e) {
                 if (e.success && self.locale) {
                     self.compare();
