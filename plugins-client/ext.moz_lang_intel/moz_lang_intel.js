@@ -17,6 +17,8 @@ define(function(require, exports, module) {
     var language = require("ext/language/language");
     var properties_parser = require("text!ext/moz_lang_intel/parser/properties.js");
     var properties_worker = require("text!ext/moz_lang_intel/worker/properties.js");
+    var dtd_parser = require("text!ext/moz_lang_intel/parser/dtd.js");
+    var dtd_worker = require("text!ext/moz_lang_intel/worker/dtd.js");
 
     module.exports = ext.register("ext/moz_lang_intel/moz_lang_intel", {
         dev: "mozilla.org",
@@ -64,11 +66,16 @@ define(function(require, exports, module) {
                 }
             }
             ide.addEventListener("moz:settings", onSettings);
+            // get the code into the worker, we'll register additional types later
             language.registerLanguageHandler("ext/moz_lang_intel/worker/properties",
-            properties_parser + properties_worker);
+                properties_parser + properties_worker + 
+                dtd_parser + dtd_worker);
             ide.addEventListener("extload", function() {
                 console.log('worker?', language.worker);
                 var _onmessage = language.worker.onMessage;
+                // delay registering additional handlers post-extload,
+                // to make sure their code is landed.
+                setTimeout(function() {language.registerLanguageHandler("ext/moz_lang_intel/worker/dtd")}, 0);
                 language.worker.$worker.onmessage = function(e) {
                     _onmessage(e);
                     if (e.data.type == 'moz:l10n' && e.data.name == 'reference') {
